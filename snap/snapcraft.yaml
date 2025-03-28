@@ -4,10 +4,6 @@ description: |
   Unofficial Web app for DuckDuckGo's Duck.ai providing the desktop user
   experience you would expect on Ubuntu or any other Linux desktop
 
-  For microphone access you need to connect the audio-record interface:
-
-    sudo snap connect duck-ai:audio-record
-
 adopt-info: duck-ai
 grade: stable
 confinement: strict
