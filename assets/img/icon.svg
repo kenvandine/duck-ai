@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   fill="none"
+   width="24"
+   height="24"
+   version="1.1"
+   id="svg4"
+   sodipodi:docname="icon.svg"
+   inkscape:export-filename="../ae106272/icon512.png"
+   inkscape:export-xdpi="2048"
+   inkscape:export-ydpi="2048"
+   inkscape:version="1.4.1-rc (d9e8dc1fe0, 2025-03-10)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview4"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="36.666667"
+     inkscape:cx="12"
+     inkscape:cy="12.013636"
+     inkscape:window-width="2518"
+     inkscape:window-height="1371"
+     inkscape:window-x="1962"
+     inkscape:window-y="32"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg4" />
+  <path
+     fill="#fff"
+     fill-rule="evenodd"
+     d="M4.81 17.208c.466.433.557 1.164.141 1.646l-1.19 1.382c-.658.765-.014 1.921.98 1.746 3.374-.594 8.773-1.652 11.028-2.695C19.424 17.95 22 14.732 22 10.973 22 6.017 17.523 2 12 2S2 6.017 2 10.973c0 2.422 1.07 4.62 2.81 6.235"
+     clip-rule="evenodd"
+     id="path1" />
+  <path
+     fill="url(#ai-chat-gradient-color-24_svg__a)"
+     fill-opacity="0.77"
+     fill-rule="evenodd"
+     d="M4.81 17.208c.466.433.557 1.164.141 1.646l-1.19 1.382c-.658.765-.014 1.921.98 1.746 3.374-.594 8.773-1.652 11.028-2.695C19.424 17.95 22 14.732 22 10.973 22 6.017 17.523 2 12 2S2 6.017 2 10.973c0 2.422 1.07 4.62 2.81 6.235"
+     clip-rule="evenodd"
+     id="path2" />
+  <path
+     fill="#fff"
+     d="M11.533 6.302c.121-.487.813-.487.934 0l.265 1.06a4.01 4.01 0 0 0 2.922 2.92l1.06.266c.486.121.486.813 0 .934l-1.06.265a4.01 4.01 0 0 0-2.922 2.922l-.265 1.06c-.121.486-.813.486-.934 0l-.265-1.06a4.01 4.01 0 0 0-2.922-2.922l-1.06-.264c-.486-.122-.486-.814 0-.935l1.06-.265a4.01 4.01 0 0 0 2.922-2.922z"
+     id="path3" />
+  <defs
+     id="defs4">
+    <linearGradient
+       id="ai-chat-gradient-color-24_svg__a"
+       x1="3.5"
+       x2="12.05"
+       y1="3.004"
+       y2="21.978"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         stop-color="#A276FF"
+         id="stop3" />
+      <stop
+         offset="1"
+         stop-color="#3969EF"
+         id="stop4" />
+    </linearGradient>
+  </defs>
+</svg>

@@ -1,0 +1,93 @@
+name: duck-ai
+summary: Duck.ai Desktop
+description: |
+  Unofficial Web app for DuckDuckGo's Duck.ai providing the desktop user
+  experience you would expect on Ubuntu or any other Linux desktop
+
+  For microphone access you need to connect the audio-record interface:
+
+    sudo snap connect duck-ai:audio-record
+
+adopt-info: duck-ai
+grade: stable
+confinement: strict
+base: core24
+contact: https://github.com/kenvandine/duck-ai/issues
+issues: https://github.com/kenvandine/duck-ai/issues
+website: https://github.com/kenvandine/duck-ai
+license: GPL-3.0+
+icon: ./assets/img/icon.png
+
+platforms:
+  amd64:
+  arm64:
+compression: lzo
+
+parts:
+  duck-ai:
+    plugin: nil
+    source: .
+    build-packages:
+      - npm
+      - git
+    override-pull: |
+      craftctl default
+      VERSION=$(craftctl get version)
+      if [ -z $VERSION ]; then
+        VERSION=$(git describe --tags --abbrev=10)
+        craftctl set version=$VERSION
+      fi
+      sed -i.bak -e "s|@@VERSION@@|$VERSION|g" $CRAFT_PART_SRC/package.json
+    override-build: |
+      npm install
+      npm run build
+      mkdir -p $SNAPCRAFT_PART_INSTALL/unpacked
+      cp $SNAPCRAFT_PROJECT_DIR/com.github.kenvandine.duck.ai.desktop $SNAPCRAFT_PART_INSTALL/
+      cp $SNAPCRAFT_PROJECT_DIR/assets/img/icon.png $SNAPCRAFT_PART_INSTALL/
+      mv dist/linux*-unpacked/* $SNAPCRAFT_PART_INSTALL/unpacked 
+      cp $SNAPCRAFT_PROJECT_DIR/com.github.kenvandine.duck.ai-autostart.desktop $SNAPCRAFT_PART_INSTALL/
+    prime:
+      - com.github.kenvandine.duck.ai*.desktop
+      - unpacked
+      - -*/assets/img/icon.png
+      - -*/chrome-sandbox
+      - -*/resources/app.asar.unpacked/node_modules/sharp/vendor/lib
+      - -*/resources/app.asar.unpacked/node_modules/sharp/vendor/include
+
+  launcher:
+    plugin: dump
+    source: launcher
+    override-build: |
+      cp launcher $CRAFT_PART_INSTALL/
+
+  cleanup:
+    after: [ duck-ai ]
+    plugin: nil
+    build-snaps: [ gnome-46-2404 ]
+    override-prime: |
+        set -eux
+        cd /snap/gnome-46-2404/current
+        find . -type f,l -exec rm -f $SNAPCRAFT_PRIME/{} \;
+
+plugs:
+  shmem:
+    interface: shared-memory
+    private: true
+
+apps:
+  duck-ai:
+    extensions: [gnome]
+    desktop: com.github.kenvandine.duck.ai.desktop
+    autostart: duck.ai.desktop
+    command: launcher
+    plugs:
+      - audio-playback
+      - audio-record
+      - home
+      - network
+      - shmem
+      - unity7
+    environment:
+      GTK_USE_PORTAL: 1
+      TMPDIR: $XDG_RUNTIME_DIR
+      HOME: $SNAP_REAL_HOME

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Duck.ai
+Comment=Duck.ai AI Desktop
+Type=Application
+Exec=duck.io-desktop --tray
+Icon=${SNAP}/unpacked/resources/app/assets/img/icon.png
+Categories=Accessories;
+Keywords=AI;Copilot;GPT;ChatGPT;Gemini;DuckAI;

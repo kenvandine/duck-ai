@@ -1,0 +1,40 @@
+{
+  "name": "duck.ai",
+  "title": "Duck.ai Desktop",
+  "version": "@@VERSION@@",
+  "description": "Unofficial Web app for DuckDuckGo's Duck.ai providing the desktop user experience you would expect on Ubuntu or any other Linux desktop.",
+  "main": "index.js",
+  "scripts": {
+    "start": "electron .",
+    "start-tray": "electron . --tray",
+    "build": "electron-builder --publish never"
+  },
+  "build": {
+    "asar": false,
+    "linux": {
+      "target": [
+	      "dir"
+      ],
+      "category": "Utility",
+      "artifactName": "${name}_${version}_linux.${ext}"
+    },
+    "extraFiles": [
+      "com.github.kenvandine.${name}.desktop"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kenvandine/duck-ai.git"
+  },
+  "author": "Ken VanDine",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/kenvandine/duck-ai/issues"
+  },
+  "homepage": "https://github.com/kenvandine/duck-ai#readme",
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8",
+    "electron-package": "^0.1.0"
+  }
+}
