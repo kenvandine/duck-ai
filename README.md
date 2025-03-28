@@ -8,10 +8,10 @@ Unofficial wrapper for DuckDuckGo's Duck.ai AI Companion, providing a native Lin
 This project and its contributors are not affiliated with DuckDuckGo. This is simply an Electron wrapper that loads the offical DuckDuckGo Duck.ai web application.
 # Installation
 
-[![Get it from the Snap Store](https://raw.githubusercontent.com/snapcore/snap-store-badges/master/EN/%5BEN%5D-snap-store-white.png)](https://snapcraft.io/duck.ai)
+[![Get it from the Snap Store](https://raw.githubusercontent.com/snapcore/snap-store-badges/master/EN/%5BEN%5D-snap-store-white.png)](https://snapcraft.io/duck-ai)
 
-[![duck.ai](https://snapcraft.io/duck.ai/badge.svg)](https://snapcraft.io/duck.ai)
-[![duck.ai](https://snapcraft.io/duck.ai/trending.svg?name=0)](https://snapcraft.io/duck.ai)
+[![duck.ai](https://snapcraft.io/duck.ai/badge.svg)](https://snapcraft.io/duck-ai)
+[![duck.ai](https://snapcraft.io/duck.ai/trending.svg?name=0)](https://snapcraft.io/duck-ai)
 
 ## Requirements
 
