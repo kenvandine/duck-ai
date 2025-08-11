@@ -10,8 +10,8 @@ This project and its contributors are not affiliated with DuckDuckGo. This is si
 
 [![Get it from the Snap Store](https://raw.githubusercontent.com/snapcore/snap-store-badges/master/EN/%5BEN%5D-snap-store-white.png)](https://snapcraft.io/duck-ai)
 
-[![duck.ai](https://snapcraft.io/duck.ai/badge.svg)](https://snapcraft.io/duck-ai)
-[![duck.ai](https://snapcraft.io/duck.ai/trending.svg?name=0)](https://snapcraft.io/duck-ai)
+[![duck.ai](https://snapcraft.io/duck-ai/badge.svg)](https://snapcraft.io/duck-ai)
+[![duck.ai](https://snapcraft.io/duck-ai/trending.svg?name=0)](https://snapcraft.io/duck-ai)
 
 ## Requirements
 
