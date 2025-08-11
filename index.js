@@ -218,6 +218,9 @@ ipcMain.on('get-app-metadata', (event) => {
 });
 
 app.on('ready', () => {
+  console.log(`Electron Version: ${process.versions.electron}`);
+  console.log(`App Version: ${app.getVersion()}`);
+
   tray = new Tray(icon);
   // Ignore double click events for the tray icon
   tray.setIgnoreDoubleClickEvents(true)
