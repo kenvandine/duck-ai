@@ -199,6 +199,14 @@ function createAboutWindow() {
     shell.openExternal(url);
     return { action: 'deny' }
   });
+
+  win.webContents.on('before-input-event', (event, input) => {
+    if (input.control && input.key.toLowerCase() === 'r') {
+      console.log('Pressed Control+R')
+      event.preventDefault()
+      win.loadURL(appURL);
+    }
+  })
 }
 
 ipcMain.on('get-app-metadata', (event) => {
