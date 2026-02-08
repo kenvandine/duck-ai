@@ -89,7 +89,9 @@ ipcMain.on('open-external-link', (event, url) => {
       return;
     }
 
-    shell.openExternal(url);
+    shell.openExternal(url).catch((err) => {
+      console.error('Failed to open external URL:', url, err);
+    });
   } catch (err) {
     console.warn('open-external-link: failed to parse URL', err);
   }
@@ -113,7 +115,7 @@ ipcMain.on('network-status', (event, isOnline) => {
     win.loadURL(appURL);
   } else if (!isOnline && !wasOffline) {
     wasOffline = true;
-    win.loadFile('./assets/html/offline.html');
+    win.loadFile(join(__dirname, 'assets', 'html', 'offline.html'));
   }
 });
 
@@ -163,7 +165,7 @@ function createWindow () {
 
     console.log(`did-fail-load: ${errorDescription} (${errorCode}) on ${validatedURL}`);
     wasOffline = true;
-    win.loadFile('./assets/html/offline.html');
+    win.loadFile(join(__dirname, 'assets', 'html', 'offline.html'));
   });
 
   // Intercept navigation and only allow app + auth hosts in-app
@@ -199,7 +201,9 @@ function createWindow () {
         if (protocol === 'http:' || protocol === 'https:') {
           console.log('will-navigate external: ', url);
           event.preventDefault();
-          shell.openExternal(url);
+          shell.openExternal(url).catch((err) => {
+            console.error('Failed to open external URL:', url, err);
+          });
         } else {
           console.log('Blocked will-navigate to unsupported protocol: ', url);
           event.preventDefault();
@@ -211,8 +215,8 @@ function createWindow () {
     }
   });
 
-  // New-window requests (window.open / target="_blank"): only keep the
-  // app host in-app; everything else opens in the default browser
+  // New-window requests (window.open / target="_blank"): only keep
+  // allowedHosts in-app; everything else opens in the default browser
   win.webContents.setWindowOpenHandler(({url}) => {
     console.log('windowOpenHandler: ', url);
     try {
@@ -220,14 +224,18 @@ function createWindow () {
       const host = parsedUrl.hostname;
       const protocol = parsedUrl.protocol;
 
-      if (host === new URL(appURL).hostname) {
+      if (allowedHosts.has(host)) {
+        // Load the URL in the existing window instead of opening a new one
+        // action: 'deny' prevents the new window creation
         win.loadURL(url);
         return { action: 'deny' };
       }
 
       // Only open well-formed http/https URLs externally
       if (protocol === 'http:' || protocol === 'https:') {
-        shell.openExternal(url);
+        shell.openExternal(url).catch((err) => {
+          console.error('Failed to open external URL:', url, err);
+        });
       } else {
         console.log('Blocked windowOpenHandler for unsupported protocol: ', url);
       }
@@ -285,6 +293,17 @@ if (!firstInstance) {
 } else {
   app.on("second-instance", (event) => {
     console.log("second-instance");
+
+    // Ensure the main window exists and is not destroyed before using it
+    if (!win || win.isDestroyed()) {
+      createWindow();
+      return;
+    }
+
+    if (win.isMinimized()) {
+      win.restore();
+    }
+
     win.show();
     win.focus();
   });
