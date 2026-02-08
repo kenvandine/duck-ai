@@ -69,7 +69,7 @@ ipcMain.on('log-message', (event, message) => {
 ipcMain.on('open-external-link', (event, url) => {
   console.log('open-external-link: ', url);
   
-  if (typeof url !== 'string' || !url) {
+  if (typeof url !== 'string') {
     console.warn('open-external-link: invalid URL value');
     return;
   }
