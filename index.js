@@ -1,5 +1,6 @@
 const { app, BrowserWindow, screen, Tray, Menu, nativeImage, ipcMain, shell} = require('electron');
-const { join } = require('path');
+const path = require('path');
+const { join } = path;
 const fs = require('fs');
 const { allowedHosts } = require('./constants');
 
@@ -175,15 +176,25 @@ function createWindow () {
 
       // Allow file:// protocol only for the offline page
       if (protocol === 'file:') {
-        const offlinePath = join(__dirname, 'assets', 'html', 'offline.html');
-        // Convert file URL to path for comparison
-        const urlPath = parsedUrl.pathname;
-        // On Windows, file URLs have format file:///C:/path, so we need to handle this
-        if (urlPath.includes('offline.html')) {
+        // Get the canonical path of the offline page
+        const offlinePath = path.resolve(join(__dirname, 'assets', 'html', 'offline.html'));
+        
+        // Convert file URL to path and normalize it
+        let urlPath;
+        if (process.platform === 'win32') {
+          // On Windows, file URLs have format file:///C:/path
+          urlPath = parsedUrl.pathname.substring(1); // Remove leading /
+        } else {
+          urlPath = parsedUrl.pathname;
+        }
+        const normalizedUrlPath = path.resolve(decodeURIComponent(urlPath));
+        
+        // Only allow navigation to the specific offline page
+        if (normalizedUrlPath === offlinePath) {
           console.log('will-navigate: allowing offline page');
           return;
         } else {
-          console.log('Blocked will-navigate to unauthorized file:// URL');
+          console.log('Blocked will-navigate to unauthorized file:// URL:', normalizedUrlPath);
           event.preventDefault();
           return;
         }
