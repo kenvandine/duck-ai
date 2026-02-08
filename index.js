@@ -1,10 +1,12 @@
 const { app, BrowserWindow, screen, Tray, Menu, nativeImage, ipcMain, shell} = require('electron');
 const { join } = require('path');
 const fs = require('fs');
+const { allowedHosts } = require('./constants');
 
 let tray = null;
 let win = null;
 let autostart = false;
+let wasOffline = false;
 const appURL = 'https://duck.ai'
 const icon = nativeImage.createFromPath(join(__dirname, '/assets/img/icon.png'));
 const isTray = process.argv.includes('--tray');
@@ -25,7 +27,7 @@ function handleAutoStartChange() {
   if (autostart) {
     console.log("Enabling autostart");
     if (!fs.existsSync(snapUserData + '/.config/autostart')) {
-      fs.mkdirSync(snapUserData + '/.config/autostart', recursive=true);
+      fs.mkdirSync(snapUserData + '/.config/autostart', { recursive: true });
     }
     if (!fs.existsSync(snapUserData + '/.config/autostart/duck.ai.desktop')) {
       fs.copyFileSync(snapPath + '/com.github.kenvandine.duck.ai-autostart.desktop', snapUserData + '/.config/autostart/duck.ai.desktop');
@@ -37,6 +39,85 @@ function handleAutoStartChange() {
     }
   }
 }
+
+// IPC listeners (registered once, outside createWindow to avoid leaks)
+ipcMain.on('zoom-in', () => {
+  if (!win || win.isDestroyed()) return;
+  console.log('zoom-in');
+  const currentZoom = win.webContents.getZoomLevel();
+  win.webContents.setZoomLevel(currentZoom + 1);
+});
+
+ipcMain.on('zoom-out', () => {
+  if (!win || win.isDestroyed()) return;
+  console.log('zoom-out');
+  const currentZoom = win.webContents.getZoomLevel();
+  win.webContents.setZoomLevel(currentZoom - 1);
+});
+
+ipcMain.on('zoom-reset', () => {
+  if (!win || win.isDestroyed()) return;
+  console.log('zoom-reset');
+  win.webContents.setZoomLevel(0);
+});
+
+ipcMain.on('log-message', (event, message) => {
+  console.log('Log from preload: ', message);
+});
+
+// Open links with default browser
+ipcMain.on('open-external-link', (event, url) => {
+  console.log('open-external-link: ', url);
+  
+  if (typeof url !== 'string') {
+    console.warn('open-external-link: invalid URL value');
+    return;
+  }
+
+  try {
+    const parsedUrl = new URL(url);
+    const allowedProtocols = ['http:', 'https:'];
+
+    // Ensure the URL is absolute (has origin)
+    if (!parsedUrl.origin || parsedUrl.origin === 'null') {
+      console.warn('open-external-link: blocked relative or opaque URL');
+      return;
+    }
+
+    if (!allowedProtocols.includes(parsedUrl.protocol)) {
+      console.warn(`open-external-link: blocked URL with disallowed protocol: ${parsedUrl.protocol}`);
+      return;
+    }
+
+    shell.openExternal(url).catch((err) => {
+      console.error('Failed to open external URL:', url, err);
+    });
+  } catch (err) {
+    console.warn('open-external-link: failed to parse URL', err);
+  }
+});
+
+// Retry connection from offline page
+ipcMain.on('retry-connection', () => {
+  if (!win || win.isDestroyed()) return;
+  console.log('Retrying connection...');
+  wasOffline = false;
+  win.loadURL(appURL);
+});
+
+// Listen for network status updates from the preload script
+// Only act on transitions to avoid reload loops
+ipcMain.on('network-status', (event, isOnline) => {
+  if (!win || win.isDestroyed()) return;
+  console.log(`Network status: ${isOnline ? 'online' : 'offline'}`);
+  if (isOnline && wasOffline) {
+    wasOffline = false;
+    win.loadURL(appURL);
+  } else if (!isOnline && !wasOffline) {
+    wasOffline = true;
+    win.loadFile(join(__dirname, 'assets', 'html', 'offline.html'));
+  }
+});
 
 function createWindow () {
   const primaryDisplay = screen.getPrimaryDisplay();
@@ -67,55 +148,102 @@ function createWindow () {
     win.hide();
   });
 
-  ipcMain.on('zoom-in', () => {
-    console.log('zoom-in');
-    const currentZoom = win.webContents.getZoomLevel();
-    win.webContents.setZoomLevel(currentZoom + 1);
-  });
-
-  ipcMain.on('zoom-out', () => {
-    console.log('zoom-out');
-    const currentZoom = win.webContents.getZoomLevel();
-    win.webContents.setZoomLevel(currentZoom - 1);
-  });
-
-  ipcMain.on('zoom-reset', () => {
-    console.log('zoom-reset');
-    win.webContents.setZoomLevel(0);
-  });
-
-  ipcMain.on('log-message', (event, message) => {
-    console.log('Log from preload: ', message);
-  });
-
-  // Open links with default browser
-  ipcMain.on('open-external-link', (event, url) => {
-    console.log('open-external-link: ', url);
-    if (url) {
-      shell.openExternal(url);
-    }
-  });
-
-  // Listen for network status updates from the renderer process
-  ipcMain.on('network-status', (event, isOnline) => {
-    console.log(`Network status: ${isOnline ? 'online' : 'offline'}`);
-    console.log("network-status changed: " + isOnline);
-    if (isOnline) {
-      win.loadURL(appURL);
-    } else {
-      win.loadFile('./assets/html/offline.html');
-    }
-  });
-
-  //win.loadFile(join(__dirname, 'index.html'));
   win.loadURL(appURL);
 
-  // Link clicks open new windows, let's force them to open links in
-  // the default browser
+  // Show offline page if the URL fails to load (e.g. no internet)
+  win.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+    // Only handle failures for the main frame and ignore benign abort errors (e.g. ERR_ABORTED = -3)
+    if (!isMainFrame) {
+      return;
+    }
+
+    const isAbortError =
+      errorCode === -3 || (typeof errorDescription === 'string' && errorDescription.includes('ERR_ABORTED'));
+    if (isAbortError) {
+      return;
+    }
+
+    console.log(`did-fail-load: ${errorDescription} (${errorCode}) on ${validatedURL}`);
+    wasOffline = true;
+    win.loadFile(join(__dirname, 'assets', 'html', 'offline.html'));
+  });
+
+  // Intercept navigation and only allow app + auth hosts in-app
+  win.webContents.on('will-navigate', (event, url) => {
+    try {
+      const parsedUrl = new URL(url);
+      const targetHost = parsedUrl.hostname;
+      const protocol = parsedUrl.protocol;
+
+      // Allow file:// protocol only for the offline page
+      if (protocol === 'file:') {
+        const { fileURLToPath } = require('url');
+        const { normalize } = require('path');
+        const offlinePath = normalize(join(__dirname, 'assets', 'html', 'offline.html'));
+        
+        try {
+          const requestedPath = normalize(fileURLToPath(parsedUrl));
+          if (requestedPath === offlinePath) {
+            console.log('will-navigate: allowing offline page');
+            return;
+          }
+        } catch (pathError) {
+          console.error('Failed to resolve file path in will-navigate:', pathError);
+        }
+        
+        console.log('Blocked will-navigate to unauthorized file:// URL');
+        event.preventDefault();
+        return;
+      }
+
+      if (!allowedHosts.has(targetHost)) {
+        // Only open well-formed http/https URLs externally
+        if (protocol === 'http:' || protocol === 'https:') {
+          console.log('will-navigate external: ', url);
+          event.preventDefault();
+          shell.openExternal(url).catch((err) => {
+            console.error('Failed to open external URL:', url, err);
+          });
+        } else {
+          console.log('Blocked will-navigate to unsupported protocol: ', url);
+          event.preventDefault();
+        }
+      }
+    } catch (e) {
+      console.error('Failed to parse navigation URL in will-navigate: ', url, e);
+      event.preventDefault();
+    }
+  });
+
+  // New-window requests (window.open / target="_blank"): only keep
+  // allowedHosts in-app; everything else opens in the default browser
   win.webContents.setWindowOpenHandler(({url}) => {
     console.log('windowOpenHandler: ', url);
-    shell.openExternal(url);
-    return { action: 'deny' }
+    try {
+      const parsedUrl = new URL(url);
+      const host = parsedUrl.hostname;
+      const protocol = parsedUrl.protocol;
+
+      if (allowedHosts.has(host)) {
+        // Load the URL in the existing window instead of opening a new one
+        // action: 'deny' prevents the new window creation
+        win.loadURL(url);
+        return { action: 'deny' };
+      }
+
+      // Only open well-formed http/https URLs externally
+      if (protocol === 'http:' || protocol === 'https:') {
+        shell.openExternal(url).catch((err) => {
+          console.error('Failed to open external URL:', url, err);
+        });
+      } else {
+        console.log('Blocked windowOpenHandler for unsupported protocol: ', url);
+      }
+    } catch (e) {
+      console.error('Failed to parse URL in windowOpenHandler: ', url, e);
+      // On parse failure, do not open externally
+    }
+    return { action: 'deny' };
   });
 
   win.webContents.on('before-input-event', (event, input) => {
@@ -165,7 +293,19 @@ if (!firstInstance) {
 } else {
   app.on("second-instance", (event) => {
     console.log("second-instance");
+
+    // Ensure the main window exists and is not destroyed before using it
+    if (!win || win.isDestroyed()) {
+      createWindow();
+      return;
+    }
+
+    if (win.isMinimized()) {
+      win.restore();
+    }
+
     win.show();
+    win.focus();
   });
 }
 
@@ -175,9 +315,9 @@ function createAboutWindow() {
 
   const aboutWindow = new BrowserWindow({
     width: 500,
-    height: 300,
+    height: 420,
     x: x + ((width - 500) / 2),
-    y: y + ((height - 500) / 2),
+    y: y + ((height - 420) / 2),
     title: 'About',
     webPreferences: {
       nodeIntegration: true,
@@ -216,14 +356,6 @@ function createAboutWindow() {
     shell.openExternal(url);
     return { action: 'deny' }
   });
-
-  win.webContents.on('before-input-event', (event, input) => {
-    if (input.control && input.key.toLowerCase() === 'r') {
-      console.log('Pressed Control+R')
-      event.preventDefault()
-      win.loadURL(appURL);
-    }
-  })
 }
 
 ipcMain.on('get-app-metadata', (event) => {
