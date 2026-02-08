@@ -28,7 +28,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const link = target.closest('a');
         if (link && link.href && link.href.startsWith('http')) {
             try {
-                const host = new URL(link.href).host;
+                const host = new URL(link.href).hostname;
                 if (allowedHosts.has(host)) {
                     return; // Allow app + auth links to navigate in-app
                 }
