@@ -78,6 +78,12 @@ ipcMain.on('open-external-link', (event, url) => {
     const parsedUrl = new URL(url);
     const allowedProtocols = ['http:', 'https:'];
 
+    // Ensure the URL is absolute (has origin)
+    if (!parsedUrl.origin || parsedUrl.origin === 'null') {
+      console.warn('open-external-link: blocked relative or opaque URL');
+      return;
+    }
+
     if (!allowedProtocols.includes(parsedUrl.protocol)) {
       console.warn(`open-external-link: blocked URL with disallowed protocol: ${parsedUrl.protocol}`);
       return;
@@ -167,10 +173,20 @@ function createWindow () {
       const targetHost = parsedUrl.host;
       const protocol = parsedUrl.protocol;
 
-      // Allow file:// protocol for offline page
+      // Allow file:// protocol only for the offline page
       if (protocol === 'file:') {
-        console.log('will-navigate: allowing file:// protocol');
-        return;
+        const offlinePath = join(__dirname, 'assets', 'html', 'offline.html');
+        // Convert file URL to path for comparison
+        const urlPath = parsedUrl.pathname;
+        // On Windows, file URLs have format file:///C:/path, so we need to handle this
+        if (urlPath.includes('offline.html')) {
+          console.log('will-navigate: allowing offline page');
+          return;
+        } else {
+          console.log('Blocked will-navigate to unauthorized file:// URL');
+          event.preventDefault();
+          return;
+        }
       }
 
       if (!allowedHosts.has(targetHost)) {
