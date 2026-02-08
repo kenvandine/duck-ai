@@ -235,7 +235,7 @@ function createWindow () {
       console.error('Failed to parse URL in windowOpenHandler: ', url, e);
       // On parse failure, do not open externally
     }
-    return { action: 'deny' }
+    return { action: 'deny' };
   });
 
   win.webContents.on('before-input-event', (event, input) => {
