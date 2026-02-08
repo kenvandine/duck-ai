@@ -42,18 +42,21 @@ function handleAutoStartChange() {
 
 // IPC listeners (registered once, outside createWindow to avoid leaks)
 ipcMain.on('zoom-in', () => {
+  if (!win || win.isDestroyed()) return;
   console.log('zoom-in');
   const currentZoom = win.webContents.getZoomLevel();
   win.webContents.setZoomLevel(currentZoom + 1);
 });
 
 ipcMain.on('zoom-out', () => {
+  if (!win || win.isDestroyed()) return;
   console.log('zoom-out');
   const currentZoom = win.webContents.getZoomLevel();
   win.webContents.setZoomLevel(currentZoom - 1);
 });
 
 ipcMain.on('zoom-reset', () => {
+  if (!win || win.isDestroyed()) return;
   console.log('zoom-reset');
   win.webContents.setZoomLevel(0);
 });
@@ -65,13 +68,30 @@ ipcMain.on('log-message', (event, message) => {
 // Open links with default browser
 ipcMain.on('open-external-link', (event, url) => {
   console.log('open-external-link: ', url);
-  if (url) {
+  
+  if (typeof url !== 'string' || !url) {
+    console.warn('open-external-link: invalid URL value');
+    return;
+  }
+
+  try {
+    const parsedUrl = new URL(url);
+    const allowedProtocols = ['http:', 'https:'];
+
+    if (!allowedProtocols.includes(parsedUrl.protocol)) {
+      console.warn(`open-external-link: blocked URL with disallowed protocol: ${parsedUrl.protocol}`);
+      return;
+    }
+
     shell.openExternal(url);
+  } catch (err) {
+    console.warn('open-external-link: failed to parse URL', err);
   }
 });
 
 // Retry connection from offline page
 ipcMain.on('retry-connection', () => {
+  if (!win || win.isDestroyed()) return;
   console.log('Retrying connection...');
   wasOffline = false;
   win.loadURL(appURL);
@@ -80,6 +100,7 @@ ipcMain.on('retry-connection', () => {
 // Listen for network status updates from the preload script
 // Only act on transitions to avoid reload loops
 ipcMain.on('network-status', (event, isOnline) => {
+  if (!win || win.isDestroyed()) return;
   console.log(`Network status: ${isOnline ? 'online' : 'offline'}`);
   if (isOnline && wasOffline) {
     wasOffline = false;
@@ -145,6 +166,12 @@ function createWindow () {
       const parsedUrl = new URL(url);
       const targetHost = parsedUrl.host;
       const protocol = parsedUrl.protocol;
+
+      // Allow file:// protocol for offline page
+      if (protocol === 'file:') {
+        console.log('will-navigate: allowing file:// protocol');
+        return;
+      }
 
       if (!allowedHosts.has(targetHost)) {
         // Only open well-formed http/https URLs externally
