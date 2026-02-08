@@ -48,7 +48,7 @@ npm install
 npm start
 
 # Run with system tray
-npm start-tray
+npm run start-tray
 
 # Build for distribution
 npm run build
