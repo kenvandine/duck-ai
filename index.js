@@ -225,6 +225,8 @@ function createWindow () {
       const protocol = parsedUrl.protocol;
 
       if (allowedHosts.has(host)) {
+        // Load the URL in the existing window instead of opening a new one
+        // action: 'deny' prevents the new window creation
         win.loadURL(url);
         return { action: 'deny' };
       }
