@@ -1,6 +1,7 @@
 const { app, BrowserWindow, screen, Tray, Menu, nativeImage, ipcMain, shell} = require('electron');
 const { join } = require('path');
 const fs = require('fs');
+const { allowedHosts } = require('./constants');
 
 let tray = null;
 let win = null;
@@ -137,12 +138,6 @@ function createWindow () {
     wasOffline = true;
     win.loadFile('./assets/html/offline.html');
   });
-
-  // Hosts allowed to navigate within the Electron window
-  const allowedHosts = new Set([
-    'duck.ai',
-    'duckduckgo.com',
-  ]);
 
   // Intercept navigation and only allow app + auth hosts in-app
   win.webContents.on('will-navigate', (event, url) => {
