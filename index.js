@@ -170,23 +170,28 @@ function createWindow () {
   win.webContents.on('will-navigate', (event, url) => {
     try {
       const parsedUrl = new URL(url);
-      const targetHost = parsedUrl.host;
+      const targetHost = parsedUrl.hostname;
       const protocol = parsedUrl.protocol;
 
       // Allow file:// protocol only for the offline page
       if (protocol === 'file:') {
-        const offlinePath = join(__dirname, 'assets', 'html', 'offline.html');
-        // Convert file URL to path for comparison
-        const urlPath = parsedUrl.pathname;
-        // On Windows, file URLs have format file:///C:/path, so we need to handle this
-        if (urlPath.includes('offline.html')) {
-          console.log('will-navigate: allowing offline page');
-          return;
-        } else {
-          console.log('Blocked will-navigate to unauthorized file:// URL');
-          event.preventDefault();
-          return;
+        const { fileURLToPath } = require('url');
+        const { normalize } = require('path');
+        const offlinePath = normalize(join(__dirname, 'assets', 'html', 'offline.html'));
+        
+        try {
+          const requestedPath = normalize(fileURLToPath(parsedUrl));
+          if (requestedPath === offlinePath) {
+            console.log('will-navigate: allowing offline page');
+            return;
+          }
+        } catch (pathError) {
+          console.error('Failed to resolve file path in will-navigate:', pathError);
         }
+        
+        console.log('Blocked will-navigate to unauthorized file:// URL');
+        event.preventDefault();
+        return;
       }
 
       if (!allowedHosts.has(targetHost)) {
@@ -211,15 +216,25 @@ function createWindow () {
   win.webContents.setWindowOpenHandler(({url}) => {
     console.log('windowOpenHandler: ', url);
     try {
-      const host = new URL(url).host;
-      if (host === new URL(appURL).host) {
+      const parsedUrl = new URL(url);
+      const host = parsedUrl.hostname;
+      const protocol = parsedUrl.protocol;
+
+      if (host === new URL(appURL).hostname) {
         win.loadURL(url);
         return { action: 'deny' };
       }
+
+      // Only open well-formed http/https URLs externally
+      if (protocol === 'http:' || protocol === 'https:') {
+        shell.openExternal(url);
+      } else {
+        console.log('Blocked windowOpenHandler for unsupported protocol: ', url);
+      }
     } catch (e) {
-      // If URL parsing fails, open externally
+      console.error('Failed to parse URL in windowOpenHandler: ', url, e);
+      // On parse failure, do not open externally
     }
-    shell.openExternal(url);
     return { action: 'deny' }
   });
 
