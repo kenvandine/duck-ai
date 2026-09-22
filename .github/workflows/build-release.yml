@@ -1,0 +1,53 @@
+name: Build Linux Packages
+
+on:
+  push:
+    tags:
+      - 'v*' # Dispara quando você empurra uma tag que começa com v (ex: v1.0.0)
+
+permissions:
+  contents: write # Necessário para criar a Release
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Use a mesma versão que você usa localmente
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Set package version from tag
+        run: |
+          # Pega a versão a partir da tag (ex: v1.2.3 -> 1.2.3) e grava no package.json,
+          # assim o nome dos arquivos gerados (${version}) sempre bate com o release.
+          VERSION="${GITHUB_REF_NAME#v}"
+          npm version "$VERSION" --no-git-tag-version --allow-same-version
+          echo "Building version $VERSION"
+
+      - name: Build AppImage and deb
+        run: npm run build
+        env:
+          # Isso evita o erro de "maintainer" no deb, mas você já corrigiu isso no package.json
+          # Se não corrigiu, pode definir aqui também:
+          # DEB_MAINTAINER: "seu-email@exemplo.com"
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Não usado no build, mas seguro ter
+
+      - name: Upload artifacts to Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            dist/*.AppImage
+            dist/*.deb
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
