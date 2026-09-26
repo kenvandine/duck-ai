@@ -1,7 +1,7 @@
 {
   "name": "duck.ai",
   "title": "Duck.ai Desktop",
-  "version": "1.0.0",
+  "version": "@@VERSION@@",
   "desktopName": "com.github.kenvandine.duck.ai.desktop",
   "description": "Unofficial Web app for DuckDuckGo's Duck.ai providing the desktop user experience you would expect on Ubuntu or any other Linux desktop.",
   "main": "index.js",
@@ -24,7 +24,7 @@
       "syncDesktopName": true,
       "synopsis": "Unofficial desktop app for DuckDuckGo's Duck.ai",
       "category": "Utility",
-      "maintainer": "Ken VanDine <ken@kenvandine.com>",
+      "maintainer": "Ken VanDine <ken@vandine.org>",
       "artifactName": "${name}_${version}_linux.${ext}",
       "desktop": {
         "entry": {
