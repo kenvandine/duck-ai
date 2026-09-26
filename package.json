@@ -2,6 +2,7 @@
   "name": "duck.ai",
   "title": "Duck.ai Desktop",
   "version": "@@VERSION@@",
+  "desktopName": "com.github.kenvandine.duck.ai.desktop",
   "description": "Unofficial Web app for DuckDuckGo's Duck.ai providing the desktop user experience you would expect on Ubuntu or any other Linux desktop.",
   "main": "index.js",
   "scripts": {
@@ -12,12 +13,39 @@
   },
   "build": {
     "asar": false,
+    "appId": "com.github.kenvandine.duck.ai",
+    "productName": "Duck.ai",
     "linux": {
       "target": [
-	      "dir"
+        "AppImage",
+        "deb"
       ],
+      "icon": "assets/img/icon512.png",
+      "syncDesktopName": true,
+      "synopsis": "Unofficial desktop app for DuckDuckGo's Duck.ai",
       "category": "Utility",
-      "artifactName": "${name}_${version}_linux.${ext}"
+      "maintainer": "Ken VanDine <ken@vandine.org>",
+      "artifactName": "${name}_${version}_linux.${ext}",
+      "desktop": {
+        "entry": {
+          "Name": "Duck.ai",
+          "Comment": "Unofficial Web app for DuckDuckGo's Duck.ai",
+          "Categories": "Utility;Network;"
+        }
+      }
+    },
+    "deb": {
+      "depends": [
+        "libgtk-3-0",
+        "libnotify4",
+        "libnss3",
+        "libxss1",
+        "libxtst6",
+        "xdg-utils",
+        "libatspi2.0-0",
+        "libuuid1",
+        "libsecret-1-0"
+      ]
     },
     "extraFiles": [
       "com.github.kenvandine.${name}.desktop"
@@ -34,8 +62,8 @@
   },
   "homepage": "https://github.com/kenvandine/duck-ai#readme",
   "devDependencies": {
-    "electron": "^40.2.1",
-    "electron-builder": "^26.7.0",
+    "electron": "^44.4.3",
+    "electron-builder": "^26.15.3",
     "electron-package": "^0.1.0"
   }
 }
