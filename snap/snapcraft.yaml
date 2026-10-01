@@ -29,7 +29,7 @@ parts:
     override-pull: |
       craftctl default
       VERSION=$(craftctl get version)
-      if [ -z $VERSION ]; then
+      if [ -z "$VERSION" ]; then
         VERSION=$(git describe --tags --abbrev=10)
         craftctl set version=$VERSION
       fi
@@ -40,7 +40,13 @@ parts:
       mkdir -p $SNAPCRAFT_PART_INSTALL/unpacked
       cp $SNAPCRAFT_PROJECT_DIR/com.github.kenvandine.duck.ai.desktop $SNAPCRAFT_PART_INSTALL/
       cp $SNAPCRAFT_PROJECT_DIR/assets/img/icon.png $SNAPCRAFT_PART_INSTALL/
-      mv dist/linux*-unpacked/* $SNAPCRAFT_PART_INSTALL/unpacked 
+      # Move all files from the unpacked directory to the install directory
+      if [ -d "$SNAPCRAFT_PROJECT_DIR/dist/linux*-unpacked" ]; then
+        mv $SNAPCRAFT_PROJECT_DIR/dist/linux*-unpacked/* $SNAPCRAFT_PART_INSTALL/unpacked/
+      else
+        echo "Error: unpacked directory not found"
+        exit 1
+      fi
       cp $SNAPCRAFT_PROJECT_DIR/com.github.kenvandine.duck.ai-autostart.desktop $SNAPCRAFT_PART_INSTALL/
     prime:
       - com.github.kenvandine.duck.ai*.desktop
