@@ -22,6 +22,7 @@ You will need to install [npm](https://www.npmjs.com/), the Node.js package mana
 Once you have npm, clone the wrapper to a convenient location:
 
 ```bash
+
 git clone https://github.com/kenvandine/duck.ai.git
 ```
 
@@ -39,7 +40,12 @@ On subsequent runs, `npm start` will be all that's required.
 Simply pull the latest version of master and install any changed dependencies:
 
 ```bash
+
 git checkout main
 git pull
 npm install
 ```
+
+## Copilot Instructions
+
+For information on how to work with this repository using GitHub Copilot, please see the [Copilot instructions](.github/copilot-instructions.md).
