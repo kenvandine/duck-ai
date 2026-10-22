@@ -1,0 +1,41 @@
+{
+  "app-id": "org.duck.ai",
+  "runtime": "org.freedesktop.Platform",
+  "runtime-version": "23.08",
+  "sdk": "org.freedesktop.Sdk",
+  "command": "duck-ai",
+  "tags": ["nightly"],
+  "finish-args": [
+    "--socket=x11",
+    "--socket=wayland",
+    "--socket=pulseaudio",
+    "--share=ipc",
+    "--device=dri",
+    "--filesystem=home",
+    "--talk-name=org.freedesktop.Notifications",
+    "--talk-name=org.freedesktop.portal.*"
+  ],
+  "modules": [
+    {
+      "name": "duck-ai",
+      "buildsystem": "simple",
+      "build-commands": [
+        "npm install",
+        "npm run build",
+        "mkdir -p /app/lib/duck-ai",
+        "cp -r dist/linux*-unpacked/* /app/lib/duck-ai/",
+        "cp -r assets /app/lib/duck-ai/",
+        "cp com.github.kenvandine.duck.ai.desktop /app/share/applications/",
+        "cp com.github.kenvandine.duck.ai-autostart.desktop /app/share/applications/",
+        "cp assets/img/icon.png /app/share/icons/hicolor/512x512/apps/"
+      ],
+      "sources": [
+        {
+          "type": "git",
+          "url": "https://github.com/kenvandine/duck-ai.git",
+          "tag": "@@VERSION@@"
+        }
+      ]
+    }
+  ]
+}
